@@ -1,0 +1,14 @@
+[user]
+	email = anirudt@gmail.com
+	name = anirudt
+[core]
+	editor = vim
+[alias]
+	s = status
+	c = commit
+	p = push
+	cl = clone
+[http]
+	proxy = http://10.3.100.207:8080
+[https]
+	proxy = https://10.3.100.207:8080
