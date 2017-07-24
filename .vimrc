@@ -4,6 +4,11 @@ syntax on
 syntax enable
 "autocmd FileType cpp colorscheme luna
 colorscheme luna-term
+set cursorline
+hi CursorLine cterm=None ctermbg=0 ctermfg=white
+
+highlight Comment cterm=italic
+
 
 autocmd InsertEnter * :set number
 autocmd InsertLeave * :set relativenumber
@@ -38,11 +43,25 @@ Plugin 'kien/ctrlp.vim'
 """Powerline plugin
 Plugin 'Lokaltog/vim-powerline'
 
+Plugin 'w0rp/ale'
+
 Plugin 'powerline/powerline'
+
+"""Jedi Plugin, needs pip before install
+Plugin 'davidhalter/jedi-vim'
 
 Plugin 'jiangmiao/auto-pairs'
 
 Plugin 'majutsushi/tagbar'
+
+Plugin 'skywind3000/asyncrun.vim'
+
+Plugin 'octol/vim-cpp-enhanced-highlight'
+
+""" Neocomplete - general purpose auto complete frontend
+Plugin 'Shougo/neocomplete.vim'
+
+Plugin 'vim-latex/vim-latex'
 
 call vundle#end()
 filetype plugin indent on
@@ -67,6 +86,7 @@ map <C-PageDown> :tabnext<CR>
 
 """ new tab creation
 map tn <Esc>:tabnew<CR>
+map <C-e> :AsyncRun make<CR>
 
 set foldmethod=indent
 nnoremap <Space> za
@@ -152,3 +172,20 @@ if has("cscope")
     nmap <C-\>d :cs find d <C-R>=expand("<cword>")<CR><CR>	
 
 endif
+nmap ; :
+
+" Jedi settings
+let g:jedi#popup_select_first = 1
+let g:jedi#show_call_signatures = "1"
+
+""" Neocomplete settings
+set completeopt=longest,menu,menuone
+let g:neocomplete#enable_at_startup=1
+" have selection on first option
+let g:neocomplete#enable_auto_select = 1
+
+let g:ale_lint_on_save = 1
+let g:ale_lint_on_text_changed = 1
+" You can disable this option too
+" if you don't want linters to run on opening a file
+let g:ale_lint_on_enter = 1
