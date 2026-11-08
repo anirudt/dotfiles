@@ -52,9 +52,6 @@ set textwidth=0           " no hard-wrap; vim-pencil handles this
 set formatoptions=l
 set nojoinspaces          " one space after period
 
-" ---- Spell checking -----------------------------------------
-set spelllang=en_us
-nnoremap <leader>s :setlocal spell!<CR>
 
 " ---- Search -------------------------------------------------
 set incsearch
@@ -99,6 +96,10 @@ function! s:goyo_enter()
   set noshowcmd
   set scrolloff=999
   set nonumber norelativenumber
+  set conceallevel=0        " show apostrophes and all special chars
+  syntax off                " no colour highlights in writing mode
+  highlight clear SpellCap  " no proper-noun highlights
+  highlight clear SpellBad
   Limelight
   SoftPencil
 endfunction
@@ -107,6 +108,8 @@ function! s:goyo_leave()
   set showcmd
   set scrolloff=5
   set number relativenumber
+  set conceallevel=2
+  syntax enable
   Limelight!
   PencilOff
 endfunction
@@ -114,8 +117,8 @@ endfunction
 autocmd! User GoyoEnter nested call <SID>goyo_enter()
 autocmd! User GoyoLeave nested call <SID>goyo_leave()
 
-" <leader>w enters writing mode (100-col centred buffer)
-nnoremap <leader>w :Goyo 100<CR>
+" <leader>w enters writing mode (80% width so margins scale with font size)
+nnoremap <leader>w :Goyo 80%x90%<CR>
 
 let g:limelight_conceal_ctermfg = 240
 let g:limelight_paragraph_span = 1
@@ -123,8 +126,8 @@ let g:limelight_paragraph_span = 1
 " ---- tex autocmds -------------------------------------------
 augroup tex_writing
   autocmd!
-  autocmd FileType tex setlocal spell
   autocmd FileType tex setlocal textwidth=0
+  autocmd FileType tex setlocal nospell
   " j/k navigate display lines (better for wrapped prose)
   autocmd FileType tex nnoremap <buffer> j gj
   autocmd FileType tex nnoremap <buffer> k gk
