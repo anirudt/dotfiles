@@ -148,3 +148,6 @@ nnoremap <C-j> <C-w>j
 nnoremap <C-k> <C-w>k
 
 nnoremap <leader>z :w<CR>
+
+" ---- Copy entire file to system clipboard -------------------
+nnoremap <leader>y :call system('xclip -selection clipboard', join(getline(1,'$'), "\n"))<CR>
