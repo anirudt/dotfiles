@@ -90,6 +90,7 @@ let g:vimtex_compiler_latexmk = {
   \ 'options': ['-pdf', '-interaction=nonstopmode', '-synctex=1']
 \ }
 let g:tex_flavor = 'latex'
+let g:vimtex_compiler_enabled = 0    " don't auto-start latexmk on open
 
 " ---- Goyo + Limelight integration ---------------------------
 function! s:goyo_enter()
