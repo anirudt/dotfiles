@@ -1,191 +1,146 @@
-syntax on
-
-" color scheme enable
-syntax enable
-"autocmd FileType cpp colorscheme luna
-colorscheme luna-term
-set cursorline
-hi CursorLine cterm=None ctermbg=0 ctermfg=white
-
-highlight Comment cterm=italic
-
-
-autocmd InsertEnter * :set number
-autocmd InsertLeave * :set relativenumber
-
-" numbering options
-set relativenumber
-
-" indent options
-set ai
-
-set incsearch
-set hlsearch
-
-set showmatch
-
-set shiftwidth=2
-
-set tabstop=8
+" ============================================================
+" ~/.vimrc — writing-first config (tex / prose)
+" ============================================================
 
 set nocompatible
-filetype off 
+filetype off
 
-set rtp^=~/.vim/bundle/Vundle.vim
-call vundle#begin()
+" ---- Plugin manager (vim-plug) ------------------------------
+" Bootstrap: run this once in a shell, then open vim and :PlugInstall
+"   curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
+"     https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 
-"""manage vundle
-Plugin 'gmarik/Vundle.vim'
+call plug#begin('~/.vim/plugged')
 
-"""CtrlP plugin
-Plugin 'kien/ctrlp.vim'
+" Distraction-free writing
+Plug 'junegunn/goyo.vim'          " centred, padded writing mode  :Goyo
+Plug 'junegunn/limelight.vim'     " dims paragraphs outside cursor
+Plug 'reedes/vim-pencil'          " prose-friendly soft/hard wrap
 
-"""Powerline plugin
-Plugin 'Lokaltog/vim-powerline'
+" LaTeX (modern, actively maintained)
+Plug 'lervag/vimtex'
 
-Plugin 'w0rp/ale'
+" Quality-of-life for prose
+Plug 'tpope/vim-abolish'          " :Subvert — case-smart substitution
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'           " fuzzy file/word search
 
-Plugin 'powerline/powerline'
+" Lightweight statusline
+Plug 'itchyny/lightline.vim'
 
-"""Jedi Plugin, needs pip before install
-Plugin 'davidhalter/jedi-vim'
-
-Plugin 'jiangmiao/auto-pairs'
-
-Plugin 'majutsushi/tagbar'
-
-Plugin 'skywind3000/asyncrun.vim'
-
-Plugin 'octol/vim-cpp-enhanced-highlight'
-
-""" Neocomplete - general purpose auto complete frontend
-Plugin 'Shougo/neocomplete.vim'
-
-Plugin 'vim-latex/vim-latex'
-
-call vundle#end()
+call plug#end()
 filetype plugin indent on
 
-"Ctrlp fuzzy finder : thanks to Robin Ward
-"for quick indexing by using git file listing => no files from gitignore, but untracked files
-let g:ctrlp_user_command = ['.git/', 'cd %s && git ls-files --exclude-standard -co']
-
-""" search through tags
-let g:ctrlp_extensions = ['tag']
-nmap <leader>p ;CtrlPTag<CR>
-
-let g:Powerline_symbols = 'fancy'
-set rtp+=/usr/local/lib/python2.7/dist-packages/powerline/bindings/vim/
-set laststatus=2
+" ---- Basic appearance ---------------------------------------
+syntax enable
+set background=dark
 set t_Co=256
+set encoding=utf-8
+set scrolloff=5
+set laststatus=2
+set noshowmode            " lightline shows mode
 
-" Tab mapping
-"""switching between tabs
-map <C-PageUp> :tabprevious<CR>
-map <C-PageDown> :tabnext<CR>
+" ---- Line numbers -------------------------------------------
+set number
+set relativenumber
 
-""" new tab creation
-map tn <Esc>:tabnew<CR>
-map <C-e> :AsyncRun make<CR>
+" ---- Prose defaults -----------------------------------------
+set wrap
+set linebreak             " break at word boundaries
+set breakindent
+set textwidth=0           " no hard-wrap; vim-pencil handles this
+set formatoptions=l
+set nojoinspaces          " one space after period
 
-set foldmethod=indent
-nnoremap <Space> za
+" ---- Spell checking -----------------------------------------
+set spelllang=en_us
+nnoremap <leader>s :setlocal spell!<CR>
 
-nmap <C-x> :TagbarToggle<CR>
-let g:tagbar_show_linenumbers = 2
-set tabstop=4 softtabstop=0 expandtab shiftwidth=2 smarttab
+" ---- Search -------------------------------------------------
+set incsearch
+set hlsearch
+set ignorecase
+set smartcase
+nnoremap <leader><space> :nohlsearch<CR>
 
+" ---- Indentation --------------------------------------------
+set tabstop=2
+set shiftwidth=2
+set expandtab
+set smartindent
 
-" Makefile keybindings
-map <C-f> <Esc>:copen<CR>
+" ---- Splits -------------------------------------------------
+set splitbelow
+set splitright
 
+" ---- Word count in statusline -------------------------------
+function! WordCount()
+  return wordcount()['words'] . ' w'
+endfunction
 
-if has("cscope")
+let g:lightline = {
+  \ 'active': {
+  \   'left':  [['mode','paste'],['filename','modified']],
+  \   'right': [['wordcount'],['percent'],['filetype']]
+  \ },
+  \ 'component_function': { 'wordcount': 'WordCount' }
+\ }
 
-    """"""""""""" Standard cscope/vim boilerplate
+" ---- vimtex -------------------------------------------------
+let g:vimtex_view_method = 'zathura'
+let g:vimtex_compiler_method = 'latexmk'
+let g:vimtex_compiler_latexmk = {
+  \ 'options': ['-pdf', '-interaction=nonstopmode', '-synctex=1']
+\ }
+let g:tex_flavor = 'latex'
 
-    " use both cscope and ctag for 'ctrl-]', ':ta', and 'vim -t'
-    set cscopetag
+" ---- Goyo + Limelight integration ---------------------------
+function! s:goyo_enter()
+  set noshowcmd
+  set scrolloff=999
+  set nonumber norelativenumber
+  Limelight
+  SoftPencil
+endfunction
 
-    " check cscope for definition of a symbol before checking ctags: set to 1
-    " if you want the reverse search order.
-    set csto=0
+function! s:goyo_leave()
+  set showcmd
+  set scrolloff=5
+  set number relativenumber
+  Limelight!
+  PencilOff
+endfunction
 
-    " add any cscope database in current directory
-    if filereadable("cscope.out")
-        cs add cscope.out  
-    " else add the database pointed to by environment variable 
-    elseif $CSCOPE_DB != ""
-        cs add $CSCOPE_DB
-    endif
+autocmd! User GoyoEnter nested call <SID>goyo_enter()
+autocmd! User GoyoLeave nested call <SID>goyo_leave()
 
-    " show msg when any other cscope db added
-    set cscopeverbose  
+" <leader>w enters writing mode (100-col centred buffer)
+nnoremap <leader>w :Goyo 100<CR>
 
+let g:limelight_conceal_ctermfg = 240
+let g:limelight_paragraph_span = 1
 
-    """"""""""""" My cscope/vim key mappings
-    "
-    " The following maps all invoke one of the following cscope search types:
-    "
-    "   's'   symbol: find all references to the token under cursor
-    "   'g'   global: find global definition(s) of the token under cursor
-    "   'c'   calls:  find all calls to the function name under cursor
-    "   't'   text:   find all instances of the text under cursor
-    "   'e'   egrep:  egrep search for the word under cursor
-    "   'f'   file:   open the filename under cursor
-    "   'i'   includes: find files that include the filename under cursor
-    "   'd'   called: find functions that function under cursor calls
-    "
-    " Below are three sets of the maps: one set that just jumps to your
-    " search result, one that splits the existing vim window horizontally and
-    " diplays your search result in the new window, and one that does the same
-    " thing, but does a vertical split instead (vim 6 only).
-    "
-    " I've used CTRL-\ and CTRL-@ as the starting keys for these maps, as it's
-    " unlikely that you need their default mappings (CTRL-\'s default use is
-    " as part of CTRL-\ CTRL-N typemap, which basically just does the same
-    " thing as hitting 'escape': CTRL-@ doesn't seem to have any default use).
-    " If you don't like using 'CTRL-@' or CTRL-\, , you can change some or all
-    " of these maps to use other keys.  One likely candidate is 'CTRL-_'
-    " (which also maps to CTRL-/, which is easier to type).  By default it is
-    " used to switch between Hebrew and English keyboard mode.
-    "
-    " All of the maps involving the <cfile> macro use '^<cfile>$': this is so
-    " that searches over '#include <time.h>" return only references to
-    " 'time.h', and not 'sys/time.h', etc. (by default cscope will return all
-    " files that contain 'time.h' as part of their name).
+" ---- tex autocmds -------------------------------------------
+augroup tex_writing
+  autocmd!
+  autocmd FileType tex setlocal spell
+  autocmd FileType tex setlocal textwidth=0
+  " j/k navigate display lines (better for wrapped prose)
+  autocmd FileType tex nnoremap <buffer> j gj
+  autocmd FileType tex nnoremap <buffer> k gk
+  autocmd FileType tex vnoremap <buffer> j gj
+  autocmd FileType tex vnoremap <buffer> k gk
+  " compile
+  autocmd FileType tex nnoremap <buffer> <C-e> :VimtexCompile<CR>
+augroup END
 
+" ---- Key mappings -------------------------------------------
+nnoremap <C-p> :Files<CR>
+nnoremap <leader>f :Rg<CR>
 
-    " To do the first type of search, hit 'CTRL-\', followed by one of the
-    " cscope search types above (s,g,c,t,e,f,i,d).  The result of your cscope
-    " search will be displayed in the current window.  You can use CTRL-T to
-    " go back to where you were before the search.  
-    "
+nnoremap <C-h> <C-w>h
+nnoremap <C-l> <C-w>l
+nnoremap <C-j> <C-w>j
+nnoremap <C-k> <C-w>k
 
-    nmap <C-\>s :cs find s <C-R>=expand("<cword>")<CR><CR>	
-    nmap <C-\>g :cs find g <C-R>=expand("<cword>")<CR><CR>	
-    nmap <C-\>c :cs find c <C-R>=expand("<cword>")<CR><CR>	
-    nmap <C-\>t :cs find t <C-R>=expand("<cword>")<CR><CR>	
-    nmap <C-\>e :cs find e <C-R>=expand("<cword>")<CR><CR>	
-    nmap <C-\>f :cs find f <C-R>=expand("<cfile>")<CR><CR>	
-    nmap <C-\>i :cs find i ^<C-R>=expand("<cfile>")<CR>$<CR>
-    nmap <C-\>d :cs find d <C-R>=expand("<cword>")<CR><CR>	
-
-endif
-nmap ; :
-
-" Jedi settings
-let g:jedi#popup_select_first = 1
-let g:jedi#show_call_signatures = "1"
-
-""" Neocomplete settings
-set completeopt=longest,menu,menuone
-let g:neocomplete#enable_at_startup=1
-" have selection on first option
-let g:neocomplete#enable_auto_select = 1
-
-let g:ale_lint_on_save = 1
-let g:ale_lint_on_text_changed = 1
-" You can disable this option too
-" if you don't want linters to run on opening a file
-let g:ale_lint_on_enter = 1
+nnoremap <leader>z :w<CR>
